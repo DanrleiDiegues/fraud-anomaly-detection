@@ -1,0 +1,103 @@
+"Fraud detection" refers to the process of identifying suspicious or fraudulent activities within a dataset,
+often by using "anomaly detection" techniques, which involve finding data points that significantly deviate from the expected patterns, 
+essentially highlighting unusual behaviors that could indicate potential fraud.
+
+Key points about fraud detection and anomalies:
+> Anomaly detection as a core component: 
+Anomaly detection is a fundamental aspect of fraud prevention systems, as it allows organizations to proactively identify fraudulent activities by spotting unusual patterns in data like transactions, user behaviors, or system access attempts. 
+
+> Identifying outliers:
+Anomalies are data points that significantly differ from the normal distribution of data, acting as potential red flags for fraudulent activity. 
+
+> Applications in various industries:
+Fraud detection using anomaly detection is widely used in sectors like banking (credit card fraud), 
+insurance (false claims), e-commerce (suspicious orders), and cybersecurity (unauthorized access). 
+
+
+---- Isolation Forest: ----
+
+Filtragem de Anomalia: Utilizando uma Regressão Linear e o RMSE da regressão para fazer a validação do meu modelo Não Supervisionado.
+
+O ajuste de hiperparâmetros de um modelo como o Isolation Forest utilizando uma métrica como o RMSE (Root Mean Squared Error) de uma regressão linear pode ser feito indiretamente, com base em um processo de otimização de desempenho. Aqui está como isso pode ocorrer:
+
+1. Contextualização
+O Isolation Forest é usado para detecção de anomalias, e seu desempenho depende de hiperparâmetros como:
+
+contamination: Proporção esperada de anomalias nos dados.
+n_estimators: Número de árvores na floresta.
+max_samples: Número de amostras usadas para construir cada árvore.
+A ideia de usar a regressão linear neste contexto está ligada a validar a qualidade do modelo com base em como as detecções de anomalias afetam um sistema ou uma métrica. Isso pode incluir:
+
+O impacto das anomalias detectadas sobre os dados subsequentes.
+A relação entre os valores preditos por um modelo secundário (como a regressão linear) e os rótulos de anomalias.
+2. Processo Geral
+2.1. Pipeline com dois modelos
+Modelo 1: Isolation Forest
+
+
+O Isolation Forest é ajustado para detectar anomalias com base em diferentes combinações de hiperparâmetros. Ele gera uma saída binária (anômalo ou não) ou scores de anomalia para cada ponto de dados.
+Modelo 2: Regressão Linear
+
+Após a detecção de anomalias, você utiliza os dados filtrados (removendo ou marcando anomalias) para ajustar ou prever um conjunto de dados-alvo com uma regressão linear. O objetivo aqui é capturar a relação entre as variáveis nos dados "não anômalos".
+2.2. Otimização com base no RMSE
+Para cada conjunto de hiperparâmetros do Isolation Forest:
+Aplique o Isolation Forest e classifique os dados.
+Remova ou ajuste os dados identificados como anômalos.
+Treine o modelo de regressão linear nos dados restantes.
+Meça o RMSE da regressão linear:
+Um RMSE menor indica que os dados remanescentes apresentam uma melhor relação linear.
+Um RMSE maior sugere que o filtro de anomalias (hiperparâmetros escolhidos) não foi eficaz.
+2.3. Escolha de Hiperparâmetros
+Escolha os hiperparâmetros do Isolation Forest que minimizem o RMSE da regressão linear. Essa abordagem assume que:
+Dados "limpos" (sem anomalias) têm relações mais previsíveis.
+Um bom filtro de anomalias melhora a capacidade do modelo subsequente de capturar padrões válidos.
+3. Por que isso funciona?
+O RMSE mede a qualidade da previsão. Ao usar a regressão linear como referência, o objetivo é que a detecção de anomalias pelo Isolation Forest melhore a consistência dos dados restantes.
+Isso cria um ciclo de validação indireta: o desempenho da regressão linear serve como proxy para avaliar a qualidade da detecção de anomalias.
+4. Exemplos de Aplicação
+Detecção de fraudes financeiras
+
+Use Isolation Forest para marcar transações suspeitas. Ajuste os hiperparâmetros para que o modelo subsequente (regressão linear) tenha melhor desempenho na previsão de fluxos financeiros legítimos.
+Manutenção preditiva
+
+Aplique Isolation Forest para identificar leituras anômalas de sensores. Use regressão linear para prever o comportamento esperado dos equipamentos e ajuste o modelo de anomalias para melhorar o desempenho preditivo.
+5. Considerações
+Dependência de contexto: A eficácia desse processo depende da relação linear nos dados "limpos".
+Modelo de referência: Embora a regressão linear seja simples e eficiente, outros modelos (como redes neurais ou regressão logística) podem ser usados para validar a filtragem de anomalias.
+Validação cruzada: Use validação cruzada para garantir que os hiperparâmetros sejam ajustados de forma robusta e generalizável.
+
+Código: "Pega apenas os iliers para a regressão linear."
+
+def evaluate_outlier_classifier(model, data):
+    # Get labels
+    labels = model.fit_predict(data)
+
+    # Return inliers
+    return data[labels == 0]
+
+def evaluate_regressor(inliers):
+    X = inliers.drop("price", axis=1)
+    y = inliers[['price']]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=10)
+
+    lr = LinearRegression()
+    lr.fit(X_train, y_train)
+
+    preds = lr.predict(X_test)
+    rmse = mean_squared_error(y_test, preds, squared=False)
+
+    return round(rmse, 3)
+
+
+
+------- Local Outlier Factor (LOF) -----------
+
+Features
+Density-based algorithm
+Proposed in 2000
+Works well with moderately high-dimensional data
+Can be faster than KNN and Isolation Forest
+
+
+
+
